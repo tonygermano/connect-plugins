@@ -23,9 +23,9 @@ import com.mirth.connect.model.Step
 
 class UrlScriptPanel() : EditorPanel<Step>() {
 
-    private var infoLabel: JLabel = JLabel("Enter the path of an external JavaScript file accessible from the Mirth Connect server.")
-    private var pathLabel: JLabel = JLabel("Script Path:")
-    private var pathField: JTextField = JTextField()
+    private val infoLabel: JLabel = JLabel("Enter the path of an external JavaScript file accessible from the Mirth Connect server.")
+    private val pathLabel: JLabel = JLabel("Script Path:")
+    private val pathField: JTextField = JTextField()
 
     init {
         setBackground(UIConstants.BACKGROUND_COLOR)
