@@ -10,9 +10,7 @@
 package io.github.tonygermano.connect.plugins.scripturlstep;
 
 import java.io.IOException
-import java.net.URI
-
-import org.apache.commons.io.IOUtils
+import java.net.URL
 
 import com.mirth.connect.model.Step
 import com.mirth.connect.util.ScriptBuilderException
@@ -33,7 +31,7 @@ class UrlScriptStep : Step {
         val script = StringBuilder();
         if (loadFiles) {
             try {
-                script.append("\n" + IOUtils.toString(URI(scriptPath)) + "\n");
+                script.append("\n" + URL(scriptPath).readText() + "\n");
             } catch (e: IOException) {
                 throw ScriptBuilderException("Could not add script file.", e);
             }
