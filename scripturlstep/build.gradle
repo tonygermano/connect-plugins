@@ -31,8 +31,7 @@ dependencies {
 
     // Mirth provided libraries
     [
-        'com.miglayout:miglayout-swing:4.2',
-        'commons-io:commons-io:2.3'
+        'com.miglayout:miglayout-swing:4.2'
     ].each { lib -> 
         compileOnly lib
         testImplementation lib
