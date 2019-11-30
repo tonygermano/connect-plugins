@@ -1,0 +1,117 @@
+/*
+ * Copyright Tony Germano
+ * 
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. 
+ */
+import groovy.xml.*
+
+plugins {
+    id 'base'
+    id 'org.jetbrains.kotlin.jvm' version '1.3.21' apply false
+}
+
+allprojects { 
+    version = '1.1';
+
+    repositories {
+        jcenter()
+    }
+}
+
+subprojects {
+    apply plugin: 'org.jetbrains.kotlin.jvm'
+
+    dependencies {
+        // Use the Kotlin JDK 8 standard library.
+        implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    }
+
+    task jarSign {
+        // Dummy task for now.
+        dependsOn jar
+    }
+
+    assemble {
+        dependsOn jarSign
+    }
+
+    jar {
+        archiveBaseName = rootProject.name
+        archiveAppendix = project.name
+    }
+}
+
+task stageLibs(type: Copy) {
+    subprojects {
+        from configurations.runtimeClasspath
+    }
+    into "$buildDir/staging/$rootProject.name/lib"
+}
+
+task generatePluginXml {
+    dependsOn stageLibs
+    doLast {
+        def serverProject = findProject(':server')
+        def sharedProject = findProject(':shared')
+        def clientProject = findProject(':client')
+        def serverLibraries = serverProject ? serverProject.configurations.runtimeClasspath.collect { it.name } : []
+        def sharedLibraries = sharedProject ? sharedProject.configurations.runtimeClasspath.collect { it.name } : []
+        def clientLibraries = clientProject ? clientLibraries.configurations.runtimeClasspath.collect { it.name } : []
+
+        sharedLibraries = (sharedLibraries + serverLibraries.intersect(clientLibraries)).unique()
+        clientLibraries = clientLibraries - sharedLibraries
+        serverLibraries = serverLibraries - sharedLibraries
+
+        file("$buildDir/staging/$rootProject.name/plugin.xml").withWriter { writer ->
+            // Create MarkupBuilder with 8 space indent
+            def xml = new MarkupBuilder(new IndentPrinter(writer, "        ", true))
+            xml.doubleQuotes = true
+
+            xml.pluginMetaData(path: rootProject.name) {
+                name('Basic SSL Extentions')
+                author('Tony Germano')
+                pluginVersion(version)
+                mirthVersion('3.8.1,3.8.0,3.7.1,3.7.0, 3.6.2, 3.6.1, 3.6.0, 3.5.2, 3.5.1, 3.5.0, 3.4.2, 3.4.1, 3.4.0')
+                url('https://github.com/tonygermano/connect-plugins')
+                description('This plugin provides basic SSL support')
+                serverClasses {
+                    ['BasicSslPlugin'].each {className ->
+                        string("io.github.tonygermano.connect.plugins.${rootProject.name}.$className")
+                    }
+                }
+                library(type: 'SERVER', path: serverProject.jar.outputs.files.singleFile.name)
+                serverLibraries.each {lib ->
+                    library(type: 'SERVER', path: "lib/$lib")
+                }
+                sharedLibraries.each {lib ->
+                    library(type: 'SHARED', path: "lib/$lib")
+                }
+                clientLibraries.each {lib ->
+                    library(type: 'CLIENT', path: "lib/$lib")
+                }
+            }
+        }
+    }
+}
+
+task stageFiles(type: Copy) {
+    dependsOn stageLibs
+    subprojects {
+        from tasks.withType(Jar)
+    }
+    into "$buildDir/staging/$rootProject.name"
+}
+
+task zipExtension(type: Zip) {
+    dependsOn stageFiles, generatePluginXml
+    destinationDirectory = file("$buildDir/dist")
+    from("$buildDir/staging") {
+        include "**/*"
+    }
+}
+
+assemble {
+    dependsOn zipExtension
+}

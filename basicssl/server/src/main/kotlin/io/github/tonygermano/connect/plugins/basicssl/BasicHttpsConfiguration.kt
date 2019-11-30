@@ -15,7 +15,7 @@
  * https://github.com/nextgenhealthcare/connect/blob/3.8.1/server/src/com/mirth/connect/server/MirthWebServer.java
  */
 
-package io.github.tonygermano.connect.plugins.basichttpsconfig;
+package io.github.tonygermano.connect.plugins.basicssl;
 
 import java.io.File;
 import java.security.KeyStore;

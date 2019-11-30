@@ -6,7 +6,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. 
  */
 
- package io.github.tonygermano.connect.plugins.basichttpsconfig;
+ package io.github.tonygermano.connect.plugins.basicssl;
 
 import com.mirth.connect.model.ExtensionPermission;
 import com.mirth.connect.plugins.ServicePlugin;
@@ -18,11 +18,11 @@ import java.util.Properties;
  * 
  * @author Tony Germano
  */
-class BasicHttpsPlugin : ServicePlugin {
+class BasicSslPlugin : ServicePlugin {
 
     private val configurationController = ControllerFactory.getFactory().createConfigurationController();
 
-    override fun getPluginPointName() = "BasicHttpsConfiguration";
+    override fun getPluginPointName() = "Basic SSL";
 
     override fun start() {}
 
@@ -30,7 +30,7 @@ class BasicHttpsPlugin : ServicePlugin {
 
     override fun init(properties: Properties) {
         configurationController.saveProperty("HTTP", "httpConfigurationClass",
-            "io.github.tonygermano.connect.plugins.basichttpsconfig.BasicHttpsConfiguration");
+            "io.github.tonygermano.connect.plugins.basicssl.BasicHttpsConfiguration");
     }
 
     override fun update(properties: Properties) {}
