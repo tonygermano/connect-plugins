@@ -1,6 +1,7 @@
 /*
  * Copyright Tony Germano
- * 
+ * Copyright Alessandro Piroddi
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. 
@@ -8,15 +9,16 @@
 
 dependencies {
     // Mirth libraries
-    compileOnly files('lib/mirth-server.jar', 'lib/donkey-server.jar', 'lib/http-server.jar', 'lib/http-shared.jar')
-    testImplementation files('lib/mirth-server.jar', 'lib/donkey-server.jar', 'lib/http-server.jar', 'lib/http-shared.jar')
+    compileOnly files('lib/mirth-client-core.jar', 'lib/mirth-server.jar', 'lib/donkey-server.jar', 'lib/http-server.jar', 'lib/http-shared.jar')
+    testImplementation files('lib/mirth-client-core.jar', 'lib/mirth-server.jar', 'lib/donkey-server.jar', 'lib/http-server.jar', 'lib/http-shared.jar')
 
     // Mirth provided libraries
     [
         'javax.servlet:javax.servlet-api:3.1.0',
         'org.apache.httpcomponents:httpclient:4.5.1',
-        'org.eclipse.jetty:jetty-server:9.4.9.v20180320',
-        'commons-configuration:commons-configuration:1.7'
+        'org.eclipse.jetty:jetty-server:9.4.44.v20210927',
+        'org.apache.commons:commons-configuration2:2.7'
+
     ].each { lib -> 
         compileOnly lib
         testImplementation lib

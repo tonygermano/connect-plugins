@@ -17,33 +17,31 @@
 
 package io.github.tonygermano.connect.plugins.basicssl;
 
-import java.io.File;
-import java.security.KeyStore;
-import javax.servlet.ServletRequest;
-
-import org.apache.http.config.RegistryBuilder;
-import org.apache.http.conn.socket.ConnectionSocketFactory;
-import org.apache.http.conn.ssl.NoopHostnameVerifier;
-import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.ssl.SSLContexts;
-import org.apache.commons.configuration.PropertiesConfiguration;
-import org.eclipse.jetty.server.LowResourceMonitor;
-import org.eclipse.jetty.server.SecureRequestCustomizer;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.SslConnectionFactory;
-import org.eclipse.jetty.http.HttpVersion;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.util.ssl.SslContextFactory;
-
-import com.mirth.connect.connectors.http.HttpConfiguration;
-import com.mirth.connect.connectors.http.HttpDispatcher;
-import com.mirth.connect.connectors.http.HttpDispatcherProperties;
-import com.mirth.connect.connectors.http.HttpReceiver;
-import com.mirth.connect.donkey.model.channel.ConnectorPluginProperties;
-import com.mirth.connect.donkey.server.channel.Connector;
-import com.mirth.connect.server.controllers.ControllerFactory;
-import com.mirth.connect.util.MirthSSLUtil;
+import com.mirth.connect.client.core.PropertiesConfigurationUtil
+import com.mirth.connect.connectors.http.HttpConfiguration
+import com.mirth.connect.connectors.http.HttpDispatcher
+import com.mirth.connect.connectors.http.HttpDispatcherProperties
+import com.mirth.connect.connectors.http.HttpReceiver
+import com.mirth.connect.donkey.model.channel.ConnectorPluginProperties
+import com.mirth.connect.donkey.server.channel.Connector
+import com.mirth.connect.server.controllers.ControllerFactory
+import com.mirth.connect.server.util.ResourceUtil
+import com.mirth.connect.util.MirthSSLUtil
+import org.apache.commons.configuration2.PropertiesConfiguration
+import org.apache.commons.configuration2.ex.ConfigurationException
+import org.apache.http.config.RegistryBuilder
+import org.apache.http.conn.socket.ConnectionSocketFactory
+import org.apache.http.conn.ssl.NoopHostnameVerifier
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory
+import org.apache.http.ssl.SSLContexts
+import org.eclipse.jetty.http.HttpVersion
+import org.eclipse.jetty.server.*
+import org.eclipse.jetty.util.ssl.SslContextFactory
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.InputStream
+import java.security.KeyStore
+import javax.servlet.ServletRequest
 
 class BasicHttpsConfiguration : HttpConfiguration {
 
@@ -58,7 +56,9 @@ class BasicHttpsConfiguration : HttpConfiguration {
     override fun configureConnectorUndeploy(connector: Connector) {}
 
     override fun configureReceiver(connector: HttpReceiver) {
-        val mirthProperties = PropertiesConfiguration(javaClass.getClassLoader().getResource("mirth.properties"));
+
+
+        val mirthProperties = getMirthProperties();
 
         val keyStore = KeyStore.getInstance("JCEKS");
         File(mirthProperties.getString("keystore.path")).inputStream().use() {
@@ -74,17 +74,23 @@ class BasicHttpsConfiguration : HttpConfiguration {
         config.setSecureScheme("https");
         config.setSecurePort(mirthProperties.getInt("https.port"));
         config.addCustomizer(SecureRequestCustomizer());
+        config.setSendServerVersion(false);
+        config.setSendXPoweredBy(false);
 
-        val sslListener = ServerConnector(connector.getServer(), SslConnectionFactory(contextFactory, HttpVersion.HTTP_1_1.asString()), HttpConnectionFactory(config));
+        val sslConnector = ServerConnector(
+            connector.getServer(),
+            SslConnectionFactory(contextFactory, HttpVersion.HTTP_1_1.asString()),
+            HttpConnectionFactory(config)
+        );
 
-        sslListener.setName("ssllistener");
-        sslListener.setHost(connector.getHost());
-        sslListener.setPort(connector.getPort());
-        sslListener.setIdleTimeout(connector.getTimeout().toLong());
-        connector.getServer().addConnector(sslListener);
+        sslConnector.setName("ssllistener");
+        sslConnector.setHost(connector.getHost());
+        sslConnector.setPort(connector.getPort());
+        sslConnector.setIdleTimeout(connector.getTimeout().toLong());
+        connector.getServer().addConnector(sslConnector);
 
         val lowResourceMonitor = LowResourceMonitor(connector.getServer());
-        lowResourceMonitor.setMonitoredConnectors(listOf(sslListener));
+        lowResourceMonitor.setMonitoredConnectors(listOf(sslConnector));
         // If the number of connections open reaches 200
         lowResourceMonitor.setMaxConnections(200);
         // Then close connections after 200 seconds, which is the default MaxIdleTime value. This should affect existing connections as well.
@@ -106,4 +112,18 @@ class BasicHttpsConfiguration : HttpConfiguration {
     }
 
     override fun getRequestInformation(request: ServletRequest): Map<String, Any> = emptyMap<String, Any>();
+
+    @Throws(FileNotFoundException::class, ConfigurationException::class)
+    private fun getMirthProperties(): PropertiesConfiguration {
+        val mirthProperties: PropertiesConfiguration
+        var mirthPropsIs: InputStream? = null
+        try {
+            mirthPropsIs = ResourceUtil.getResourceStream(javaClass, "mirth.properties")
+            mirthProperties = PropertiesConfigurationUtil.create(mirthPropsIs)
+        } finally {
+            ResourceUtil.closeResourceQuietly(mirthPropsIs)
+        }
+        return mirthProperties
+    }
+
 }

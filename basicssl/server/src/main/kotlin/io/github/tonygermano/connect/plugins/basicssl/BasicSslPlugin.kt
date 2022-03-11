@@ -38,4 +38,8 @@ class BasicSslPlugin : ServicePlugin {
     override fun getDefaultProperties(): Properties = Properties();
 
     override fun getExtensionPermissions(): Array<ExtensionPermission>? = null;
+
+    override fun getObjectsForSwaggerExamples(): MutableMap<String, Any> {
+        TODO("Not yet implemented")
+    }
 }

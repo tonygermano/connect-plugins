@@ -1,6 +1,7 @@
 /*
  * Copyright Tony Germano
- * 
+ * Copyright Alessandro Piroddi
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. 
@@ -13,7 +14,7 @@ plugins {
 }
 
 allprojects { 
-    version = '1.1';
+    version = '1.2';
 
     repositories {
         jcenter()
@@ -53,16 +54,24 @@ task stageLibs(type: Copy) {
 task generatePluginXml {
     dependsOn stageLibs
     doLast {
+        def coreProject = findProject(':core')
         def serverProject = findProject(':server')
         def sharedProject = findProject(':shared')
         def clientProject = findProject(':client')
+        def coreLibraries = coreProject ? coreProject.configurations.runtimeClasspath.collect { it.name } : []
         def serverLibraries = serverProject ? serverProject.configurations.runtimeClasspath.collect { it.name } : []
         def sharedLibraries = sharedProject ? sharedProject.configurations.runtimeClasspath.collect { it.name } : []
         def clientLibraries = clientProject ? clientLibraries.configurations.runtimeClasspath.collect { it.name } : []
 
-        sharedLibraries = (sharedLibraries + serverLibraries.intersect(clientLibraries)).unique()
+        sharedLibraries = (
+                sharedLibraries +
+                serverLibraries.intersect(clientLibraries) +
+                serverLibraries.intersect(coreLibraries) +
+                coreLibraries.intersect(clientLibraries)
+        ).unique()
         clientLibraries = clientLibraries - sharedLibraries
         serverLibraries = serverLibraries - sharedLibraries
+        coreLibraries = coreLibraries - sharedLibraries
 
         file("$buildDir/staging/$rootProject.name/plugin.xml").withWriter { writer ->
             // Create MarkupBuilder with 8 space indent
@@ -70,10 +79,10 @@ task generatePluginXml {
             xml.doubleQuotes = true
 
             xml.pluginMetaData(path: rootProject.name) {
-                name('Basic SSL Extentions')
-                author('Tony Germano')
+                name('Basic SSL Extensions')
+                author('Alessandro Piroddi')
                 pluginVersion(version)
-                mirthVersion('3.8.1,3.8.0,3.7.1,3.7.0, 3.6.2, 3.6.1, 3.6.0, 3.5.2, 3.5.1, 3.5.0, 3.4.2, 3.4.1, 3.4.0')
+                mirthVersion('3.12.0,3.8.1,3.8.0,3.7.1,3.7.0, 3.6.2, 3.6.1, 3.6.0, 3.5.2, 3.5.1, 3.5.0, 3.4.2, 3.4.1, 3.4.0')
                 url('https://github.com/tonygermano/connect-plugins')
                 description('This plugin provides basic SSL support')
                 serverClasses {
@@ -82,6 +91,9 @@ task generatePluginXml {
                     }
                 }
                 library(type: 'SERVER', path: serverProject.jar.outputs.files.singleFile.name)
+                coreLibraries.each {lib ->
+                    library(type: 'CORE', path: "lib/$lib")
+                }
                 serverLibraries.each {lib ->
                     library(type: 'SERVER', path: "lib/$lib")
                 }
