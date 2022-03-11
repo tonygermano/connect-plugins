@@ -7,3 +7,5 @@ build
 .project
 .settings
 lib
+*.DS_Store
+.idea
