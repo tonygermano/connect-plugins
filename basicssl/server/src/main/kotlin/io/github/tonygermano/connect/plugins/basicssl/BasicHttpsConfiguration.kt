@@ -67,7 +67,7 @@ class BasicHttpsConfiguration : HttpConfiguration {
             keyStore.load(it, mirthProperties.getString("keystore.storepass").toCharArray())
         }
 
-        val contextFactory = SslContextFactory()
+        val contextFactory = SslContextFactory.Server()
         contextFactory.keyStore = keyStore
         contextFactory.certAlias = "mirthconnect"
         contextFactory.setKeyManagerPassword(mirthProperties.getString("keystore.keypass"))

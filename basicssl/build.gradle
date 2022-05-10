@@ -14,7 +14,7 @@ plugins {
 }
 
 allprojects { 
-    version = '1.2'
+    version = '1.3'
 
     repositories {
         jcenter()
@@ -82,7 +82,7 @@ task generatePluginXml {
                 name('Basic SSL Extensions')
                 author('Tony Germano')
                 pluginVersion(version)
-                mirthVersion('3.12.0,3.8.1,3.8.0,3.7.1,3.7.0, 3.6.2, 3.6.1, 3.6.0, 3.5.2, 3.5.1, 3.5.0, 3.4.2, 3.4.1, 3.4.0')
+                mirthVersion('4.0.1,3.12.0,3.8.1,3.8.0,3.7.1,3.7.0, 3.6.2, 3.6.1, 3.6.0, 3.5.2, 3.5.1, 3.5.0, 3.4.2, 3.4.1, 3.4.0')
                 url('https://github.com/tonygermano/connect-plugins')
                 description('This plugin provides basic SSL support')
                 serverClasses {
