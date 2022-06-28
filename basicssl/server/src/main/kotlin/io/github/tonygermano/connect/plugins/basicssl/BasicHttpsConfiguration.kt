@@ -12,8 +12,8 @@
  * defined by the Mozilla Public License, v. 2.0.
  * 
  * This file is derived from the following files:
- * https://github.com/nextgenhealthcare/connect/blob/3.12.0/server/src/com/mirth/connect/connectors/http/DefaultHttpConfiguration.java
- * https://github.com/nextgenhealthcare/connect/blob/3.12.0/server/src/com/mirth/connect/server/MirthWebServer.java
+ * https://github.com/nextgenhealthcare/connect/blob/4.0.1/server/src/com/mirth/connect/connectors/http/DefaultHttpConfiguration.java
+ * https://github.com/nextgenhealthcare/connect/blob/4.0.1/server/src/com/mirth/connect/server/MirthWebServer.java
  */
 
 package io.github.tonygermano.connect.plugins.basicssl
@@ -62,7 +62,7 @@ class BasicHttpsConfiguration : HttpConfiguration {
 
         val mirthProperties = getMirthProperties()
 
-        val keyStore = KeyStore.getInstance("JCEKS")
+        val keyStore = KeyStore.getInstance(mirthProperties.getString("keystore.type"))
         File(mirthProperties.getString("keystore.path")).inputStream().use {
             keyStore.load(it, mirthProperties.getString("keystore.storepass").toCharArray())
         }
