@@ -6,15 +6,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. 
  */
-import groovy.xml.*
+
+import groovy.xml.MarkupBuilder
 
 plugins {
     id 'base'
     id 'org.jetbrains.kotlin.jvm' version '1.3.21' apply false
 }
 
-allprojects { 
-    version = '1.3'
+allprojects {
+    version = '1.4'
 
     repositories {
         jcenter()
@@ -65,9 +66,9 @@ task generatePluginXml {
 
         sharedLibraries = (
                 sharedLibraries +
-                serverLibraries.intersect(clientLibraries) +
-                serverLibraries.intersect(coreLibraries) +
-                coreLibraries.intersect(clientLibraries)
+                        serverLibraries.intersect(clientLibraries) +
+                        serverLibraries.intersect(coreLibraries) +
+                        coreLibraries.intersect(clientLibraries)
         ).unique()
         clientLibraries = clientLibraries - sharedLibraries
         serverLibraries = serverLibraries - sharedLibraries
@@ -82,25 +83,25 @@ task generatePluginXml {
                 name('Basic SSL Extensions')
                 author('Tony Germano')
                 pluginVersion(version)
-                mirthVersion('4.0.1,3.12.0,3.8.1,3.8.0,3.7.1,3.7.0, 3.6.2, 3.6.1, 3.6.0, 3.5.2, 3.5.1, 3.5.0, 3.4.2, 3.4.1, 3.4.0')
+                mirthVersion('4.4.2,4.0.1,3.12.0,3.8.1,3.8.0,3.7.1,3.7.0, 3.6.2, 3.6.1, 3.6.0, 3.5.2, 3.5.1, 3.5.0, 3.4.2, 3.4.1, 3.4.0')
                 url('https://github.com/tonygermano/connect-plugins')
                 description('This plugin provides basic SSL support')
                 serverClasses {
-                    ['BasicSslPlugin'].each {className ->
+                    ['BasicSslPlugin'].each { className ->
                         string("io.github.tonygermano.connect.plugins.${rootProject.name}.$className")
                     }
                 }
                 library(type: 'SERVER', path: serverProject.jar.outputs.files.singleFile.name)
-                coreLibraries.each {lib ->
+                coreLibraries.each { lib ->
                     library(type: 'CORE', path: "lib/$lib")
                 }
-                serverLibraries.each {lib ->
+                serverLibraries.each { lib ->
                     library(type: 'SERVER', path: "lib/$lib")
                 }
-                sharedLibraries.each {lib ->
+                sharedLibraries.each { lib ->
                     library(type: 'SHARED', path: "lib/$lib")
                 }
-                clientLibraries.each {lib ->
+                clientLibraries.each { lib ->
                     library(type: 'CLIENT', path: "lib/$lib")
                 }
             }
